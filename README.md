@@ -1,11 +1,11 @@
-# OpenStream 📺
+# OpenStream
 
 **The Open Source, Community-Curated IPTV Aggregator.**
 
 OpenStream is a collaborative project to build a reliable, clean, and tested list of public streaming channels.
 We rely on the community to add links, and we use **GitHub Actions** to automatically test them daily, ensuring the final playlist is always "Green" (100% working).
 
-## 🚀 How to Use
+## How to Use
 
 ### For Viewers (Watch TV)
 Copy the link below and paste it into your favorite IPTV Player (TiviMate, VLC, IPTV Smarters, OttPlayer, etc.):
@@ -33,19 +33,19 @@ https://link-to-stream.m3u8
 
 ```
 
-## ⚠️ Legal Disclaimer
+## Legal Disclaimer
 
 * **OpenStream does not host any content.** We are a directory of links found publicly on the internet.
 * **No Piracy.** We strictly ban any pay-TV, premium sports, or copyrighted content. Do not submit links to HBO, Sky, BeIN, etc.
 * **DMCA:** If you are a content owner and want a link removed, please open an Issue, and we will remove it immediately.
 
-## 🤖 How it Works
+## How it Works
 
 * **Daily Scan:** Every day at 08:00 UTC, a GitHub Action runs a Python script.
 * **Validation:** The script checks every link in the database.
 * **Filtering:** Dead links (404/Timeout) are removed from the final output.
 * **Result:** The `index.m3u` file is updated with only working streams.
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](https://www.google.com/search?q=LICENSE).
