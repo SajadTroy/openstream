@@ -1,4 +1,4 @@
-# OpenStream
+# OpenStream 📺
 
 **The Open Source, Community-Curated IPTV Aggregator.**
 
@@ -12,13 +12,15 @@ Copy the link below and paste it into your favorite IPTV Player (TiviMate, VLC, 
 
 
 ```
+
 https://sajadtroy.github.io/OpenStream/index.m3u
 
 ```
 
 ### For Contributors (Add Channels)
-We welcome contributions! Please follow these rules to keep the list clean:
+**All types of content are accepted**, provided they are publicly available. We welcome contributions from all categories (News, Sports, Education, Entertainment, etc.).
 
+To add a channel:
 1.  **Go to** the `streams/` folder and edit `community.m3u`.
 2.  **Add your channel** following the M3U format (see below).
 3.  **Submit a Pull Request (PR)**.
@@ -33,11 +35,27 @@ https://link-to-stream.m3u8
 
 ```
 
-## Legal Disclaimer
+## Legal Disclaimer & Risk Warning
 
-* **OpenStream does not host any content.** We are a directory of links found publicly on the internet.
-* **No Piracy.** We strictly ban any pay-TV, premium sports, or copyrighted content. Do not submit links to HBO, Sky, BeIN, etc.
-* **DMCA:** If you are a content owner and want a link removed, please open an Issue, and we will remove it immediately.
+**Please read this carefully before using or contributing to this repository.**
+
+### 1. Content Ownership
+
+* **The Project Owner (SajadTroy) does NOT own, host, or broadcast any content.**
+* This repository is purely a **search index** and aggregator of links found by users on the public internet.
+* All stream URLs, logos, and channel names are the property of their respective copyright holders.
+
+### 2. Contributor Liability (The "Risk" Clause)
+
+* **The risk of copyright infringement lies solely with the contributor.**
+* By submitting a Pull Request (PR) to this repository, the Contributor warrants that they have the legal right to share the link.
+* The Project Owner does not verify the licensing status of user-submitted links. If a contributor submits a copyrighted or illegal link, **the contributor assumes full legal responsibility** for that submission.
+
+### 3. DMCA & Takedowns
+
+* We comply with the Digital Millennium Copyright Act (DMCA).
+* If you are a content owner and believe a link infringes on your copyright, please open a GitHub Issue, and **we will remove the link immediately**.
+* We claim "Safe Harbor" status under 17 U.S.C. § 512 as a service provider that stores information at the direction of users.
 
 ## How it Works
 
