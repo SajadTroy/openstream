@@ -12,8 +12,7 @@ Copy the link below and paste it into your favorite IPTV Player (TiviMate, VLC, 
 
 
 ```
-
-[https://raw.githubusercontent.com/SajadTroy/OpenStream/main/index.m3u](https://www.google.com/url?sa=E&source=gmail&q=https://raw.githubusercontent.com/SajadTroy/OpenStream/main/index.m3u)
+https://raw.githubusercontent.com/SajadTroy/OpenStream/main/index.m3u
 
 ```
 
