@@ -1,5 +1,9 @@
 # OpenStream
 
+<p align="center">
+  <img src="files/openstream.jpg" width="100%" alt="OpenStream Banner">
+</p>
+
 **The Open Source, Community-Curated IPTV Aggregator.**
 
 OpenStream is a collaborative project to build a reliable, clean, and tested list of public streaming channels.
