@@ -6,8 +6,11 @@ OUTPUT_FILE = "index.m3u"
 
 def is_stream_working(url):
     try:
-        with requests.get(url, stream=True, timeout=5) as response:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
 
+        with requests.get(url, headers=headers, stream=True, timeout=5) as response:
             if response.status_code != 200:
                 return False
 
@@ -20,7 +23,7 @@ def is_stream_working(url):
             else:
                 return False
 
-    except Exception as e:
+    except Exception:
         return False
 
 
@@ -31,6 +34,7 @@ def main():
         lines = f.readlines()
 
     valid_streams = ["#EXTM3U\n"]
+    seen_urls = set()
 
     for i in range(1, len(lines)):
         line = lines[i].strip()
@@ -41,16 +45,23 @@ def main():
             if not prev_line.startswith("#EXTINF"):
                 continue
 
+            if line in seen_urls:
+                print(f"⏩ Skipping Duplicate: {prev_line.split(',')[-1].strip()}")
+                continue
+
             if is_stream_working(line):
                 print(f"✅ Working: {prev_line.split(',')[-1].strip()}")
+
                 valid_streams.append(f"{prev_line}\n{line}\n")
+
+                seen_urls.add(line)
             else:
                 print(f"❌ Dead (Fake 200 or Offline): {line}")
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.writelines(valid_streams)
 
-    print("Validation Complete. index.m3u updated.")
+    print(f"Validation Complete. Total Channels: {len(seen_urls)}")
 
 
 if __name__ == "__main__":
