@@ -1,4 +1,4 @@
-# OpenStream 📺
+# OpenStream
 
 **The Open Source, Community-Curated IPTV Aggregator.**
 
