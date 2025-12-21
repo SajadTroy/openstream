@@ -17,7 +17,7 @@ Copy the link below and paste it into your favorite IPTV Player (TiviMate, VLC, 
 
 ```
 
-https://sajadtroy.github.io/OpenStream/index.m3u
+https://sajadtroy.github.io/openstream/index.m3u
 
 ```
 
@@ -70,4 +70,4 @@ https://link-to-stream.m3u8
 
 ## License
 
-This project is licensed under the [MIT License](https://www.google.com/search?q=LICENSE).
+This project is licensed under the [MIT License](https://github.com/SajadTroy/openstream?tab=MIT-1-ov-file).
