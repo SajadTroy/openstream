@@ -1,6 +1,7 @@
 import requests
+import os
 
-INPUT_FILE = "streams/community.m3u"
+STREAMS_DIR = "streams"
 OUTPUT_FILE = "index.m3u"
 
 
@@ -30,33 +31,47 @@ def is_stream_working(url):
 def main():
     print("Starting Deep Stream Validation...")
 
-    with open(INPUT_FILE, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
     valid_streams = ["#EXTM3U\n"]
     seen_urls = set()
 
-    for i in range(1, len(lines)):
-        line = lines[i].strip()
+    if not os.path.exists(STREAMS_DIR):
+        print(f"Error: Directory '{STREAMS_DIR}' not found.")
+        return
 
-        if line.startswith("http"):
-            prev_line = lines[i - 1].strip()
+    m3u_files = [f for f in os.listdir(STREAMS_DIR) if f.endswith(".m3u")]
 
-            if not prev_line.startswith("#EXTINF"):
-                continue
+    if not m3u_files:
+        print("No .m3u files found in streams directory.")
+        return
 
-            if line in seen_urls:
-                print(f"⏩ Skipping Duplicate: {prev_line.split(',')[-1].strip()}")
-                continue
+    for file_name in m3u_files:
+        file_path = os.path.join(STREAMS_DIR, file_name)
+        print(f"Processing file: {file_name}")
 
-            if is_stream_working(line):
-                print(f"✅ Working: {prev_line.split(',')[-1].strip()}")
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
 
-                valid_streams.append(f"{prev_line}\n{line}\n")
+        for i in range(1, len(lines)):
+            line = lines[i].strip()
 
-                seen_urls.add(line)
-            else:
-                print(f"❌ Dead (Fake 200 or Offline): {line}")
+            if line.startswith("http"):
+                prev_line = lines[i - 1].strip()
+
+                if not prev_line.startswith("#EXTINF"):
+                    continue
+
+                if line in seen_urls:
+                    print(f"⏩ Skipping Duplicate: {prev_line.split(',')[-1].strip()}")
+                    continue
+
+                if is_stream_working(line):
+                    print(f"✅ Working: {prev_line.split(',')[-1].strip()}")
+
+                    valid_streams.append(f"{prev_line}\n{line}\n")
+
+                    seen_urls.add(line)
+                else:
+                    print(f"❌ Dead (Fake 200 or Offline): {line}")
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.writelines(valid_streams)
