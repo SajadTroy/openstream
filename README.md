@@ -15,6 +15,7 @@ We rely on the community to add links, and we use **GitHub Actions** to automati
 Copy the link below and paste it into your favorite IPTV Player (TiviMate, VLC, IPTV Smarters, OttPlayer, etc.):
 
 
+
 ```
 
 https://sajadtroy.github.io/openstream/index.m3u
@@ -34,10 +35,19 @@ To add a channel:
 Please include the `group-title` (Category) and a clean logo URL if possible.
 
 ```text
-#EXTINF:-1 group-title="Category" tvg-logo="[https://example.com/logo.png](https://example.com/logo.png)", Channel Name
+#EXTINF:-1 group-title="Category" tvg-logo="https://example.com/logo.png", Channel Name
 https://link-to-stream.m3u8
 
+
 ```
+
+### OpenStudio (Broadcast Yourself)
+
+**Want to stream your own content directly from OBS?**
+
+We developed **OpenStudio**, a self-hosted tool that lets you turn any VPS into a TV station. It receives video from Streaming Software and creates an OpenStream-compatible link automatically.
+
+* 👉 **[Get OpenStudio Here](https://www.google.com/search?q=https://github.com/SajadTroy/openstudio)**
 
 ## Legal Disclaimer & Risk Warning
 
