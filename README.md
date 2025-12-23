@@ -47,7 +47,7 @@ https://link-to-stream.m3u8
 
 We developed **OpenStudio**, a self-hosted tool that lets you turn any VPS into a TV station. It receives video from Streaming Software and creates an OpenStream-compatible link automatically.
 
-* 👉 **[Get OpenStudio Here](https://www.google.com/search?q=https://github.com/SajadTroy/openstudio)**
+* 👉 **[Get OpenStudio Here](https://github.com/SajadTroy/openstudio)**
 
 ## Legal Disclaimer & Risk Warning
 
