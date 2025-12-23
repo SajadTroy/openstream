@@ -26,7 +26,7 @@ https://sajadtroy.github.io/openstream/index.m3u
 **All types of content are accepted**, provided they are publicly available. We welcome contributions from all categories (News, Sports, Education, Entertainment, etc.).
 
 To add a channel:
-1.  **Go to** the `streams/` folder and edit `community.m3u`.
+1.  **Go to** the `streams/` folder and edit `<any>.m3u`.
 2.  **Add your channel** following the M3U format (see below).
 3.  **Submit a Pull Request (PR)**.
 4.  Once merged, our bot will test the link. If it works, it will appear in the main list within 24 hours.
