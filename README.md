@@ -11,7 +11,7 @@ We rely on the community to add links, and we use **GitHub Actions** to automati
 
 ## How to Use
 
-### For Viewers (Watch TV)
+### For Viewers
 Copy the link below and paste it into your favorite IPTV Player (TiviMate, VLC, IPTV Smarters, OttPlayer, etc.):
 
 
