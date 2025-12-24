@@ -11,7 +11,7 @@ We rely on the community to add links, and we use **GitHub Actions** to automati
 
 ## How to Use
 
-### For Viewers
+### For Viewers(Watch TV)
 Copy the link below and paste it into your favorite IPTV Player (TiviMate, VLC, IPTV Smarters, OttPlayer, etc.):
 
 
@@ -40,14 +40,6 @@ https://link-to-stream.m3u8
 
 
 ```
-
-### OpenStudio (Broadcast Yourself)
-
-**Want to stream your own content directly from OBS?**
-
-We developed **OpenStudio**, a self-hosted tool that lets you turn any VPS into a TV station. It receives video from Streaming Software and creates an OpenStream-compatible link automatically.
-
-* 👉 **[Get OpenStudio Here](https://github.com/SajadTroy/openstudio)**
 
 ## Legal Disclaimer & Risk Warning
 
