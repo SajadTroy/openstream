@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OpenStream</title>
+    <title>OpenStream - Free Live TV</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root {
@@ -329,7 +329,13 @@
         function renderChannels() {
             const query = document.getElementById('search-input').value.toLowerCase();
 
-            let filtered = allChannels.filter(ch => ch.name.toLowerCase().includes(query));
+            let filtered = allChannels.filter(ch => {
+                // Filter by name
+                const matchesName = ch.name.toLowerCase().includes(query);
+                // Hide HTTP channels (allow only HTTPS)
+                const isSecure = ch.url.startsWith('https');
+                return matchesName && isSecure;
+            });
 
             filtered.sort((a, b) => {
                 const aFav = favorites.includes(a.id);
