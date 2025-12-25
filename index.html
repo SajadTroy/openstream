@@ -409,12 +409,6 @@
                 hls.loadSource(ch.url);
                 hls.attachMedia(video);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-                hls.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) {
-                        statusMsg.innerText = "Stream Offline or Blocked";
-                        statusMsg.style.display = 'block';
-                    }
-                });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = ch.url;
                 video.play();
