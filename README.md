@@ -18,7 +18,7 @@ Copy the link below and paste it into your favorite IPTV Player (TiviMate, VLC, 
 
 ```
 
-https://sajadtroy.github.io/openstream/index.m3u
+https://openstream.sendly.me/index.m3u
 
 ```
 
