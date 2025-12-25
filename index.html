@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,14 +11,18 @@
             --bg-dark: #000000;
             --bg-panel: #121212;
             --bg-hover: #222222;
-            --accent: #e50914; /* Netflix Red */
+            --accent: #e50914;
             --border: #333333;
             --text-main: #ffffff;
             --text-muted: #a1a1a1;
         }
 
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        
+        * {
+            box-sizing: border-box;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -29,7 +34,6 @@
             overflow: hidden;
         }
 
-        /* --- DESKTOP LAYOUT (Default) --- */
         #sidebar {
             width: 350px;
             background-color: var(--bg-panel);
@@ -50,7 +54,6 @@
             background-color: var(--bg-dark);
         }
 
-        /* Search Area */
         .search-container {
             padding: 16px;
             border-bottom: 1px solid var(--border);
@@ -76,7 +79,6 @@
             color: #666;
         }
 
-        /* Channel List */
         #channel-list {
             flex: 1;
             overflow-y: auto;
@@ -101,7 +103,7 @@
         .channel-item.active {
             background-color: var(--bg-hover);
             border-left: 3px solid var(--accent);
-            padding-left: 13px; /* Adjust for border */
+            padding-left: 13px;
         }
 
         .channel-logo {
@@ -145,7 +147,6 @@
             margin-top: 4px;
         }
 
-        /* Video Player */
         video {
             width: 100%;
             height: 100%;
@@ -159,7 +160,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            pointer-events: none; /* Let clicks pass through to video */
+            pointer-events: none;
         }
 
         .status-text {
@@ -168,16 +169,15 @@
             margin-top: 10px;
         }
 
-        /* --- MOBILE & TABLET LAYOUT --- */
         @media (max-width: 900px) {
             body {
                 flex-direction: column;
             }
 
             #main-view {
-                flex: 0 0 auto; /* Don't grow, stick to content size */
+                flex: 0 0 auto;
                 width: 100%;
-                height: 40vh; /* Video takes top 40% of screen */
+                height: 40vh;
                 border-bottom: 1px solid var(--border);
                 position: sticky;
                 top: 0;
@@ -186,7 +186,7 @@
 
             #sidebar {
                 width: 100%;
-                height: 60vh; /* List takes bottom 60% */
+                height: 60vh;
                 border-right: none;
             }
 
@@ -196,6 +196,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div id="sidebar">
@@ -203,7 +204,7 @@
             <input type="text" id="search-input" placeholder="Find a channel..." autocomplete="off">
         </div>
         <ul id="channel-list">
-            </ul>
+        </ul>
     </div>
 
     <div id="main-view">
@@ -221,7 +222,6 @@
         const statusMsg = document.getElementById('status-msg');
         let hls = null;
 
-        // 1. Initialize
         fetch(M3U_URL)
             .then(r => r.text())
             .then(parseM3U)
@@ -229,30 +229,26 @@
                 statusMsg.innerText = "Error: Could not load index.m3u";
             });
 
-        // 2. Search Listener
         document.getElementById('search-input').addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             const filtered = allChannels.filter(ch => ch.name.toLowerCase().includes(query));
             renderChannels(filtered);
         });
 
-        // 3. Parser
         function parseM3U(data) {
             const lines = data.split('\n');
             let current = {};
             allChannels = [];
-            
+
             lines.forEach(line => {
                 line = line.trim();
                 if (line.startsWith('#EXTINF:')) {
                     const info = line.split(',');
                     current.name = info[1] || "Unknown Channel";
-                    
-                    // Extract Logo
+
                     const logoMatch = line.match(/tvg-logo="([^"]*)"/);
                     current.logo = logoMatch ? logoMatch[1] : null;
 
-                    // Extract Quality Label (Simple heuristic)
                     if (current.name.includes('(1080p)')) current.quality = 'HD';
                     else if (current.name.includes('(720p)')) current.quality = 'HD';
                     else current.quality = 'SD';
@@ -266,11 +262,10 @@
             renderChannels(allChannels);
         }
 
-        // 4. Renderer
         function renderChannels(channels) {
             list.innerHTML = '';
-            
-            if(channels.length === 0) {
+
+            if (channels.length === 0) {
                 list.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">No channels found</li>';
                 return;
             }
@@ -282,33 +277,30 @@
                 li.className = 'channel-item';
                 li.onclick = () => loadChannel(ch, li);
 
-                // Logo
                 const logoDiv = document.createElement('div');
                 logoDiv.className = 'channel-logo';
                 if (ch.logo) {
                     const img = document.createElement('img');
                     img.src = ch.logo;
-                    img.loading = "lazy"; // Performance boost
-                    img.onerror = () => { img.style.display='none'; logoDiv.innerText = ch.name[0]; };
+                    img.loading = "lazy";
+                    img.onerror = () => { img.style.display = 'none'; logoDiv.innerText = ch.name[0]; };
                     logoDiv.appendChild(img);
                 } else {
                     logoDiv.innerText = ch.name.charAt(0);
                 }
 
-                // Text Info
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'channel-info';
-                
+
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'channel-name';
                 nameSpan.innerText = ch.name;
 
                 const metaSpan = document.createElement('div');
                 metaSpan.className = 'channel-meta';
-                // Show badge if secure stream
                 const isSecure = ch.url.startsWith('https');
                 metaSpan.innerText = isSecure ? `${ch.quality || ''}` : `Not Secure (HTTP)`;
-                if (!isSecure) metaSpan.style.color = '#d4a24e'; // Warning color
+                if (!isSecure) metaSpan.style.color = '#d4a24e';
 
                 infoDiv.appendChild(nameSpan);
                 infoDiv.appendChild(metaSpan);
@@ -321,14 +313,11 @@
             list.appendChild(fragment);
         }
 
-        // 5. Player Logic
         function loadChannel(ch, el) {
-            // UI Updates
             document.querySelectorAll('.channel-item').forEach(i => i.classList.remove('active'));
-            if(el) el.classList.add('active');
-            statusMsg.style.display = 'none'; // Hide overlay text
+            if (el) el.classList.add('active');
+            statusMsg.style.display = 'none';
 
-            // HLS Setup
             if (Hls.isSupported()) {
                 if (hls) hls.destroy();
                 hls = new Hls();
@@ -348,4 +337,5 @@
         }
     </script>
 </body>
+
 </html>
