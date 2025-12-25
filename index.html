@@ -15,6 +15,7 @@
             --border: #333333;
             --text-main: #ffffff;
             --text-muted: #a1a1a1;
+            --fav-gold: #ffca28;
         }
 
         * {
@@ -58,6 +59,8 @@
             padding: 16px;
             border-bottom: 1px solid var(--border);
             background-color: var(--bg-panel);
+            display: flex;
+            align-items: center;
         }
 
         #search-input {
@@ -90,7 +93,7 @@
         .channel-item {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
+            padding: 10px 16px;
             cursor: pointer;
             border-bottom: 1px solid var(--bg-hover);
             transition: background-color 0.1s;
@@ -104,6 +107,31 @@
             background-color: var(--bg-hover);
             border-left: 3px solid var(--accent);
             padding-left: 13px;
+        }
+
+        .fav-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #444;
+            padding: 8px 12px 8px 0;
+            font-size: 22px;
+            line-height: 1;
+            transition: transform 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .fav-btn:hover {
+            transform: scale(1.2);
+            color: #666;
+        }
+
+        .fav-btn.is-favorite {
+            color: var(--fav-gold);
+        }
+
+        .fav-btn.is-favorite:hover {
+            color: #ffd54f;
         }
 
         .channel-logo {
@@ -217,6 +245,28 @@
     <script>
         const M3U_URL = 'index.m3u';
         let allChannels = [];
+        let activeChannelId = null;
+
+        const storage = {
+            get: (key) => {
+                try {
+                    return JSON.parse(localStorage.getItem(key)) || [];
+                } catch (e) {
+                    return window._memStore ? window._memStore[key] : [];
+                }
+            },
+            set: (key, value) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (e) {
+                    if (!window._memStore) window._memStore = {};
+                    window._memStore[key] = value;
+                }
+            }
+        };
+
+        let favorites = storage.get('openstream_favs');
+
         const video = document.getElementById('video');
         const list = document.getElementById('channel-list');
         const statusMsg = document.getElementById('status-msg');
@@ -229,10 +279,8 @@
                 statusMsg.innerText = "Error: Could not load index.m3u";
             });
 
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = allChannels.filter(ch => ch.name.toLowerCase().includes(query));
-            renderChannels(filtered);
+        document.getElementById('search-input').addEventListener('input', () => {
+            renderChannels();
         });
 
         function parseM3U(data) {
@@ -255,27 +303,64 @@
 
                 } else if (line && !line.startsWith('#')) {
                     current.url = line;
+                    current.id = current.url;
                     allChannels.push(current);
                     current = {};
                 }
             });
-            renderChannels(allChannels);
+            renderChannels();
         }
 
-        function renderChannels(channels) {
+        function toggleFavorite(e, id) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const index = favorites.indexOf(id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(id);
+            }
+
+            storage.set('openstream_favs', favorites);
+            renderChannels();
+        }
+
+        function renderChannels() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+
+            let filtered = allChannels.filter(ch => ch.name.toLowerCase().includes(query));
+
+            filtered.sort((a, b) => {
+                const aFav = favorites.includes(a.id);
+                const bFav = favorites.includes(b.id);
+                if (aFav && !bFav) return -1;
+                if (!aFav && bFav) return 1;
+                return 0;
+            });
+
             list.innerHTML = '';
 
-            if (channels.length === 0) {
+            if (filtered.length === 0) {
                 list.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">No channels found</li>';
                 return;
             }
 
             const fragment = document.createDocumentFragment();
 
-            channels.forEach(ch => {
+            filtered.forEach(ch => {
+                const isFav = favorites.includes(ch.id);
+                const isActive = (ch.id === activeChannelId);
+
                 const li = document.createElement('li');
-                li.className = 'channel-item';
-                li.onclick = () => loadChannel(ch, li);
+                li.className = `channel-item ${isActive ? 'active' : ''}`;
+                li.onclick = () => loadChannel(ch);
+
+                const favBtn = document.createElement('button');
+                favBtn.className = `fav-btn ${isFav ? 'is-favorite' : ''}`;
+                favBtn.innerHTML = isFav ? '★' : '☆';
+                favBtn.onclick = (e) => toggleFavorite(e, ch.id);
+                li.appendChild(favBtn);
 
                 const logoDiv = document.createElement('div');
                 logoDiv.className = 'channel-logo';
@@ -313,9 +398,11 @@
             list.appendChild(fragment);
         }
 
-        function loadChannel(ch, el) {
-            document.querySelectorAll('.channel-item').forEach(i => i.classList.remove('active'));
-            if (el) el.classList.add('active');
+        function loadChannel(ch) {
+            activeChannelId = ch.id;
+
+            renderChannels();
+
             statusMsg.style.display = 'none';
 
             if (Hls.isSupported()) {
