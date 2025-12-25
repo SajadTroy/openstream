@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OpenStream</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #000000;
+            --bg-panel: #121212;
+            --bg-hover: #222222;
+            --accent: #e50914; /* Netflix Red */
+            --border: #333333;
+            --text-main: #ffffff;
+            --text-muted: #a1a1a1;
+        }
+
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- DESKTOP LAYOUT (Default) --- */
+        #sidebar {
+            width: 350px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            z-index: 2;
+        }
+
+        #main-view {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-dark);
+        }
+
+        /* Search Area */
+        .search-container {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            background-color: var(--bg-panel);
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: var(--bg-hover);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        #search-input:focus {
+            border-color: var(--border);
+        }
+
+        #search-input::placeholder {
+            color: #666;
+        }
+
+        /* Channel List */
+        #channel-list {
+            flex: 1;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .channel-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--bg-hover);
+            transition: background-color 0.1s;
+        }
+
+        .channel-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .channel-item.active {
+            background-color: var(--bg-hover);
+            border-left: 3px solid var(--accent);
+            padding-left: 13px; /* Adjust for border */
+        }
+
+        .channel-logo {
+            width: 36px;
+            height: 36px;
+            background-color: #333;
+            border-radius: 6px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #888;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .channel-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .channel-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .channel-name {
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .channel-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Video Player */
+        video {
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            background: #000;
+        }
+
+        #status-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none; /* Let clicks pass through to video */
+        }
+
+        .status-text {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        /* --- MOBILE & TABLET LAYOUT --- */
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+
+            #main-view {
+                flex: 0 0 auto; /* Don't grow, stick to content size */
+                width: 100%;
+                height: 40vh; /* Video takes top 40% of screen */
+                border-bottom: 1px solid var(--border);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            #sidebar {
+                width: 100%;
+                height: 60vh; /* List takes bottom 60% */
+                border-right: none;
+            }
+
+            video {
+                max-height: 40vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Find a channel..." autocomplete="off">
+        </div>
+        <ul id="channel-list">
+            </ul>
+    </div>
+
+    <div id="main-view">
+        <video id="video" controls autoplay playsinline></video>
+        <div id="status-overlay">
+            <div class="status-text" id="status-msg">Select a channel to play</div>
+        </div>
+    </div>
+
+    <script>
+        const M3U_URL = 'index.m3u';
+        let allChannels = [];
+        const video = document.getElementById('video');
+        const list = document.getElementById('channel-list');
+        const statusMsg = document.getElementById('status-msg');
+        let hls = null;
+
+        // 1. Initialize
+        fetch(M3U_URL)
+            .then(r => r.text())
+            .then(parseM3U)
+            .catch(e => {
+                statusMsg.innerText = "Error: Could not load index.m3u";
+            });
+
+        // 2. Search Listener
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allChannels.filter(ch => ch.name.toLowerCase().includes(query));
+            renderChannels(filtered);
+        });
+
+        // 3. Parser
+        function parseM3U(data) {
+            const lines = data.split('\n');
+            let current = {};
+            allChannels = [];
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('#EXTINF:')) {
+                    const info = line.split(',');
+                    current.name = info[1] || "Unknown Channel";
+                    
+                    // Extract Logo
+                    const logoMatch = line.match(/tvg-logo="([^"]*)"/);
+                    current.logo = logoMatch ? logoMatch[1] : null;
+
+                    // Extract Quality Label (Simple heuristic)
+                    if (current.name.includes('(1080p)')) current.quality = 'HD';
+                    else if (current.name.includes('(720p)')) current.quality = 'HD';
+                    else current.quality = 'SD';
+
+                } else if (line && !line.startsWith('#')) {
+                    current.url = line;
+                    allChannels.push(current);
+                    current = {};
+                }
+            });
+            renderChannels(allChannels);
+        }
+
+        // 4. Renderer
+        function renderChannels(channels) {
+            list.innerHTML = '';
+            
+            if(channels.length === 0) {
+                list.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">No channels found</li>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            channels.forEach(ch => {
+                const li = document.createElement('li');
+                li.className = 'channel-item';
+                li.onclick = () => loadChannel(ch, li);
+
+                // Logo
+                const logoDiv = document.createElement('div');
+                logoDiv.className = 'channel-logo';
+                if (ch.logo) {
+                    const img = document.createElement('img');
+                    img.src = ch.logo;
+                    img.loading = "lazy"; // Performance boost
+                    img.onerror = () => { img.style.display='none'; logoDiv.innerText = ch.name[0]; };
+                    logoDiv.appendChild(img);
+                } else {
+                    logoDiv.innerText = ch.name.charAt(0);
+                }
+
+                // Text Info
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'channel-info';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'channel-name';
+                nameSpan.innerText = ch.name;
+
+                const metaSpan = document.createElement('div');
+                metaSpan.className = 'channel-meta';
+                // Show badge if secure stream
+                const isSecure = ch.url.startsWith('https');
+                metaSpan.innerText = isSecure ? `${ch.quality || ''}` : `Not Secure (HTTP)`;
+                if (!isSecure) metaSpan.style.color = '#d4a24e'; // Warning color
+
+                infoDiv.appendChild(nameSpan);
+                infoDiv.appendChild(metaSpan);
+
+                li.appendChild(logoDiv);
+                li.appendChild(infoDiv);
+                fragment.appendChild(li);
+            });
+
+            list.appendChild(fragment);
+        }
+
+        // 5. Player Logic
+        function loadChannel(ch, el) {
+            // UI Updates
+            document.querySelectorAll('.channel-item').forEach(i => i.classList.remove('active'));
+            if(el) el.classList.add('active');
+            statusMsg.style.display = 'none'; // Hide overlay text
+
+            // HLS Setup
+            if (Hls.isSupported()) {
+                if (hls) hls.destroy();
+                hls = new Hls();
+                hls.loadSource(ch.url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        statusMsg.innerText = "Stream Offline or Blocked";
+                        statusMsg.style.display = 'block';
+                    }
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = ch.url;
+                video.play();
+            }
+        }
+    </script>
+</body>
+</html>
