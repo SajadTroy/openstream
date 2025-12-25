@@ -1,17 +1,22 @@
 import requests
 import os
+import concurrent.futures
 
 STREAMS_DIR = "streams"
 OUTPUT_FILE = "index.m3u"
+MAX_WORKERS = 500
 
 
-def is_stream_working(url):
+def check_stream(url):
+    """
+    Checks if a stream URL is working and returns True/False.
+    """
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
 
-        with requests.get(url, headers=headers, stream=True, timeout=5) as response:
+        with requests.get(url, headers=headers, stream=True, timeout=10) as response:
             if response.status_code != 200:
                 return False
 
@@ -29,24 +34,24 @@ def is_stream_working(url):
 
 
 def main():
-    print("Starting Deep Stream Validation...")
-
-    valid_streams = ["#EXTM3U\n"]
-    seen_urls = set()
+    print("Starting Deep Stream Validation (Concurrent)...")
 
     if not os.path.exists(STREAMS_DIR):
         print(f"Error: Directory '{STREAMS_DIR}' not found.")
         return
 
-    m3u_files = [f for f in os.listdir(STREAMS_DIR) if f.endswith(".m3u")]
+    m3u_files = sorted([f for f in os.listdir(STREAMS_DIR) if f.endswith(".m3u")])
 
     if not m3u_files:
         print("No .m3u files found in streams directory.")
         return
 
+    all_candidates = []
+    seen_urls = set()
+
+    print("Gathering streams from files...")
     for file_name in m3u_files:
         file_path = os.path.join(STREAMS_DIR, file_name)
-        print(f"Processing file: {file_name}")
 
         with open(file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
@@ -64,19 +69,41 @@ def main():
                     print(f"⏩ Skipping Duplicate: {prev_line.split(',')[-1].strip()}")
                     continue
 
-                if is_stream_working(line):
-                    print(f"✅ Working: {prev_line.split(',')[-1].strip()}")
+                seen_urls.add(line)
+                all_candidates.append((len(all_candidates), prev_line, line))
 
-                    valid_streams.append(f"{prev_line}\n{line}\n")
+    print(f"Total unique streams to check: {len(all_candidates)}")
+    print(f"Checking with {MAX_WORKERS} concurrent workers...")
 
-                    seen_urls.add(line)
+    valid_results = []
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        future_to_candidate = {
+            executor.submit(check_stream, item[2]): item for item in all_candidates
+        }
+
+        for future in concurrent.futures.as_completed(future_to_candidate):
+            idx, info, url = future_to_candidate[future]
+            channel_name = info.split(",")[-1].strip()
+
+            try:
+                is_working = future.result()
+                if is_working:
+                    print(f"✅ Working: {channel_name}")
+                    valid_results.append((idx, f"{info}\n{url}\n"))
                 else:
-                    print(f"❌ Dead (Fake 200 or Offline): {line}")
+                    print(f"❌ Dead (Fake 200 or Offline): {url}")
+            except Exception as exc:
+                print(f"❌ Error checking {channel_name}: {exc}")
+
+    valid_results.sort(key=lambda x: x[0])
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.writelines(valid_streams)
+        f.write("#EXTM3U\n")
+        for _, content in valid_results:
+            f.write(content)
 
-    print(f"Validation Complete. Total Channels: {len(seen_urls)}")
+    print(f"Validation Complete. Total Working Channels: {len(valid_results)}")
 
 
 if __name__ == "__main__":
