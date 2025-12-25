@@ -383,9 +383,7 @@
 
                 const metaSpan = document.createElement('div');
                 metaSpan.className = 'channel-meta';
-                const isSecure = ch.url.startsWith('https');
-                metaSpan.innerText = isSecure ? `${ch.quality || ''}` : `Not Secure (HTTP)`;
-                if (!isSecure) metaSpan.style.color = '#d4a24e';
+                metaSpan.innerText = ch.quality || '';
 
                 infoDiv.appendChild(nameSpan);
                 infoDiv.appendChild(metaSpan);
